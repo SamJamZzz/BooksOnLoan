@@ -1,0 +1,83 @@
+@model IEnumerable<Book>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Books</h1>
+
+@if (User.IsInRole("Admin"))
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+}
+
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Author</th>
+            <th scope="col">Title</th>
+            <th scope="col">Year Published</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Count() == 0)
+        {
+            <tr>
+                <td colspan="5">No books found</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Author)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                    <td>@Html.DisplayFor(modelItem => item.YearPublished)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Book Actions">
+                            <a asp-action="Details" asp-route-id="@item.BookCode" class="btn btn-info">Details</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.BookCode" class="btn btn-warning">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@item.BookCode" class="btn btn-danger">Delete</a>
+                            }
+                            <form asp-controller="Holds" asp-action="Borrow" asp-route-id="@item.BookCode" method="post">
+                                @Html.AntiForgeryToken()
+                                @if (item.Quantity > 0)
+                                {
+                                    <button type="submit" class="btn btn-success">Borrow</button>
+                                }
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            @if (TempData.ContainsKey("ShowPastDueAlert") && (bool)TempData["ShowPastDueAlert"]!)
+            {
+                <text>
+                    var emailMessage = "FROM: BooksOnLoan\n";
+                    emailMessage += "TO: You\n";
+                    emailMessage += "SUBJECT: Past Due Holds\n\n";
+                    emailMessage += "Dear User,\n\n";
+                    emailMessage += "You have past due holds. Please return them as soon as possible.\n\n";
+                    emailMessage += "Thank you,\nLibrary System";
+
+                    alert(emailMessage);
+                </text>
+            }
+        });
+    </script>
+}
